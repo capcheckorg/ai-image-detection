@@ -1,0 +1,15 @@
+build:
+  python_version: "3.11"
+  python_packages:
+    - torch==2.1.0
+    - torchvision==0.16.0
+    - transformers==4.36.0
+    - pillow==10.1.0
+    - accelerate==0.25.0
+    - "numpy<2.0"  # Required for torch 2.1.0 compatibility
+  gpu: false  # CPU inference - ViT-Base runs fine on CPU (~25-100ms)
+  run:
+    # Pre-download model at build time (from CapCheck HuggingFace repo)
+    - python -c "from transformers import pipeline; pipeline('image-classification', model='capcheck/ai-image-detection')"
+
+predict: "predict.py:Predictor"

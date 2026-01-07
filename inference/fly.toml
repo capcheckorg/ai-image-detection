@@ -1,0 +1,42 @@
+# CapCheck AI Detection Service
+# Fly.io CPU deployment configuration (no GPU needed for ViT-Base 86M params)
+
+app = "capcheck-ai-image-detection"
+primary_region = "lax"  # Los Angeles - same region as backend
+
+[build]
+
+[env]
+  MODEL_VERSION = "v1.0.0"
+  HF_HOME = "/models"
+  TRANSFORMERS_CACHE = "/models"
+
+# Mount volume for model storage (persists across restarts)
+[[mounts]]
+  source = "ai_models"
+  destination = "/models"
+
+[http_service]
+  internal_port = 5000
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 1  # Always-on - no cold starts
+  processes = ["app"]
+
+  [http_service.concurrency]
+    type = "requests"
+    hard_limit = 25
+    soft_limit = 20
+
+# Health check for model warm-up
+[[http_service.checks]]
+  grace_period = "60s"
+  interval = "30s"
+  method = "GET"
+  timeout = "10s"
+  path = "/health-check"
+
+[[vm]]
+  cpus = 4
+  memory = "2gb"  # 2GB is plenty for ViT-Base (~1GB model)
