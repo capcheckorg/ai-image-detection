@@ -60,7 +60,7 @@ def predictions():
 
         # Extract base64 image
         image_data = input_data.get("image", "")
-        threshold = input_data.get("threshold", 0.5)
+        threshold = input_data.get("threshold", 0.8)
         log(f"   Threshold: {threshold}, Image data length: {len(image_data)} chars")
 
         # Handle data URL format
