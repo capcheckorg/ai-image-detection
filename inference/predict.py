@@ -2,14 +2,12 @@
 CapCheck AI Detection Service
 
 Detects AI-generated images using a Vision Transformer (ViT) model.
-Supports model versioning for easy updates and fine-tuning.
+Supports multiple models selected by handle (HuggingFace repo name).
 
-Model Lineage:
-- Base: google/vit-base-patch16-224-in21k (Google's ViT)
-- Fine-tuned: dima806/ai_vs_real_image_detection (CIFAKE dataset, 2024)
-- Published: capcheck/ai-image-detection (HuggingFace)
+Models:
+- capcheck/ai-image-detection (source: dima806/ai_vs_real_image_detection, CIFAKE)
+- capcheck/ai-human-generated-image-detection (source: dima806/ai_vs_human_generated_image_detection)
 
-Version: 1.0.0
 License: Apache 2.0
 """
 
@@ -25,29 +23,29 @@ import sys
 import time
 import gc
 
-# Model versioning - easily swap models via environment variable
-MODEL_VERSION = os.environ.get("MODEL_VERSION", "v1.0.0")
+# Model selection - pick a model by its handle (matches HuggingFace repo name)
+MODEL_NAME = os.environ.get("MODEL_NAME", "ai-image-detection")
 
 MODEL_REGISTRY = {
-    "v1.0.0": "capcheck/ai-image-detection",  # Our published model (HuggingFace source of truth)
-    # "v2.0.0": "capcheck/ai-image-detection",  # Future fine-tuned version
+    "ai-image-detection": "capcheck/ai-image-detection",
+    "ai-human-generated-image-detection": "capcheck/ai-human-generated-image-detection",
 }
 
 
 class Predictor:
     def setup(self):
         """Load model into GPU memory on startup"""
-        model_name = MODEL_REGISTRY.get(MODEL_VERSION, MODEL_REGISTRY["v1.0.0"])
-        self.model_version = MODEL_VERSION
+        model_id = MODEL_REGISTRY.get(MODEL_NAME, MODEL_REGISTRY["ai-image-detection"])
+        self.model_name = MODEL_NAME
 
-        print(f"Loading model: {model_name} (version: {MODEL_VERSION})")
+        print(f"Loading model: {model_id} (handle: {MODEL_NAME})")
         start_time = time.time()
 
         # Force CPU inference - ViT-Base (86M params) runs efficiently on CPU
         # ~25-100ms inference time, 10x cheaper than GPU
         self.pipe = pipeline(
             "image-classification",
-            model=model_name,
+            model=model_id,
             device=-1  # CPU only
         )
 
@@ -110,7 +108,7 @@ class Predictor:
                 "ai_probability": round(ai_score, 4),
                 "real_probability": round(real_score, 4),
                 "threshold": threshold,
-                "model_version": self.model_version,
+                "model_version": self.model_name,
                 "inference_time_ms": round(inference_time_ms, 2),
                 "raw_results": results
             }

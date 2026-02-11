@@ -20,8 +20,9 @@ COPY server.py .
 ENV HF_HOME=/models
 ENV TRANSFORMERS_CACHE=/models
 
-# Pre-download model at build time (from HuggingFace source of truth)
+# Pre-download both models at build time (from HuggingFace source of truth)
 RUN python -c "from transformers import pipeline; pipeline('image-classification', model='capcheck/ai-image-detection')"
+RUN python -c "from transformers import pipeline; pipeline('image-classification', model='capcheck/ai-human-generated-image-detection')"
 
 EXPOSE 5000
 
