@@ -7,7 +7,7 @@ primary_region = "lax"  # Los Angeles - same region as backend
 [build]
 
 [env]
-  MODEL_VERSION = "ai-human-generated-image-detection"
+  MODEL_NAME = "ai-image-detection"
   HF_HOME = "/models"
   TRANSFORMERS_CACHE = "/models"
 
